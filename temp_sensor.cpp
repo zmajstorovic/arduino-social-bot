@@ -3,8 +3,10 @@
 #define DHTPIN 2
 #define DHTTYPE DHT11
 
+String a = ";";
 int buttonPin = 10; 
 int btnState = 0;
+
 DHT dht(DHTPIN, DHTTYPE);
 
 void setup()
@@ -15,13 +17,9 @@ void setup()
 
 void loop()
 {   
-    btnState = digitalRead(buttonPin);
     int h = dht.readHumidity();
     int t = dht.readTemperature(0);
-
-    Serial.print(h);
-    Serial.print(";");
-    Serial.print(t);
-    Serial.println();
+    String s = h+a+t;
+    Serial.print(s);
     delay(5000); 
 }
