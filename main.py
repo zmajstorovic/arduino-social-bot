@@ -4,6 +4,13 @@ import serial
 import time
 import tweepy
 import json
+from datetime import datetime
+import schedule
+ 
+def getTime():
+    vrijeme = datetime.now()
+#    return (f'{vrijeme.hour}:{vrijeme.minute}')
+    return vrijeme.hour, vrijeme.minute
 
 def getTemp():
     # make sure the 'COM#' is set according the Windows Device Manager
@@ -12,17 +19,15 @@ def getTemp():
     line = ser.readline()   # read a byte
     if line:
         string = line.decode()  # convert the byte string to a unicode string
-        #print(string)
-    # time.sleep(5)
+
     return string
     ser.close()
 
 def TwitterAuth():
-
+    #get authentication credentials
     with open('config.json') as json_file:
         data = json.load(json_file)
-    
-    #print(data['consumer_key'])
+
     twitter_auth_keys = {
         "consumer_key"        : data['consumer_key'],
         "consumer_secret"     : data['consumer_secret'],
@@ -34,28 +39,29 @@ def TwitterAuth():
             twitter_auth_keys['consumer_key'],
             twitter_auth_keys['consumer_secret']
             )
-    auth.set_access_token(
+    auth.set_access_token( 
             twitter_auth_keys['access_token'],
             twitter_auth_keys['access_token_secret']
             )
-    api = tweepy.API(auth)
-    return api
+    #api = tweepy.API(auth)
+    return tweepy.API(auth)
 
 def main():
 
-   
-    #api = tweepy.api
-    while(True):
+    #hour, minutes = getTime()
+    temp = getTemp()
+    api = TwitterAuth()
     
-        api = TwitterAuth()
-        temp = getTemp()
-        tweet = "Izmjerena temperatura u uredu je "+temp[3:]+"°C, a vlažnost zraka je "+temp[0:2]+"%."
-        status = api.update_status(status=tweet)
-        print(temp[0:2]+'   '+temp[3:])
+    tweet = "• Vrijeme: "+datetime.now().strftime("%H:%M")+"\n• Izmjerena temperatura: "+temp[3:]+"°C\n• Vlažnost zraka: "+temp[0:2]+"%."
+    status = api.update_status(status=tweet)
+    #print(temp[0:2]+'   '+temp[3:])
 
-        
-        pause(3600)
-    
 
 if __name__ == "__main__":
-    main()
+
+    schedule.every().hour.at(":00").do(main)
+    while(True):
+        schedule.run_pending()
+    
+    #print(datetime.now().strftime("%H:%M"))
+    #main()
